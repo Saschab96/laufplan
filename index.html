@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lauf-Coach Pro - EDGE Spezial</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #f8fafc; padding: 15px; margin: 0; }
+        .card { background: #1e293b; border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #334155; }
+        h1 { color: #38bdf8; font-size: 1.4rem; margin-top: 0; }
+        h2 { color: #38bdf8; font-size: 1.05rem; margin-top: 0; border-bottom: 1px solid #334155; padding-bottom: 6px; }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+        .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+        
+        .form-group { margin-bottom: 8px; }
+        label { display: block; font-size: 0.72rem; color: #94a3b8; margin-bottom: 2px; }
+        input, select, textarea { width: 100%; padding: 7px; background: #0f172a; border: 1px solid #334155; color: #fff; border-radius: 6px; box-sizing: border-box; font-size: 0.82rem; }
+        
+        .zone-box { text-align: center; background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 4px; }
+        .zone-title { font-size: 0.7rem; font-weight: bold; color: #38bdf8; }
+
+        .stat-grid { display: flex; justify-content: space-between; text-align: center; }
+        .stat-box { background: #0f172a; padding: 8px; border-radius: 8px; flex: 1; margin: 0 3px; border: 1px solid #334155; }
+        .stat-val { color: #38bdf8; font-weight: bold; font-size: 0.95rem; }
+        .stat-lbl { color: #94a3b8; font-size: 0.7rem; }
+
+        .week-grid { display: flex; gap: 5px; overflow-x: auto; padding-bottom: 5px; }
+        .day-box { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 6px; min-width: 75px; flex: 1; text-align: center; }
+        .day-box.active { border-color: #38bdf8; background: #1e293b; }
+        .day-name { font-size: 0.75rem; font-weight: bold; color: #94a3b8; }
+        .day-status { font-size: 0.7rem; margin-top: 4px; font-weight: bold; }
+        .rest-day { color: #64748b; }
+        .run-day { color: #38bdf8; }
+
+        .workout-phase { background: #0f172a; border-left: 3px solid #38bdf8; padding: 8px 10px; margin-top: 6px; border-radius: 0 6px 6px 0; font-size: 0.82rem; }
+        .phase-title { font-weight: bold; color: #38bdf8; font-size: 0.78rem; text-transform: uppercase; }
+
+        .chat-box { background: #0f172a; height: 180px; overflow-y: auto; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #334155; }
+        .msg { padding: 8px 10px; border-radius: 8px; margin-bottom: 8px; font-size: 0.85rem; line-height: 1.4; }
+        .msg-ai { background: #334155; }
+        .msg-user { background: #0284c7; text-align: right; }
+        
+        button { background: #38bdf8; border: none; padding: 10px 12px; font-weight: bold; border-radius: 6px; color: #0f172a; cursor: pointer; width: 100%; font-size: 0.9rem; }
+        .btn-sec { background: #334155; color: #f8fafc; font-size: 0.8rem; padding: 8px; }
+        .badge { background: rgba(245, 158, 11, 0.2); color: #f59e0b; padding: 3px 6px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+        
+        .section-header { color: #38bdf8; font-weight: bold; font-size: 0.85rem; margin-top: 10px; margin-bottom: 6px; border-bottom: 1px dashed #334155; padding-bottom: 3px; }
+    </style>
+</head>
+<body>
+
+    <h1>🏃 Adaptiver Lauf-Coach Pro</h1>
+    <p style="color: #94a3b8; margin-top: -10px; font-size: 0.85rem;">EDGE Spezial | Ziel: 10,8 km @ 03:59 min/km</p>
+
+    <!-- DATENSICHERUNG (EXPORT / IMPORT) -->
+    <div class="card">
+        <h2>💾 Datensicherung & Backup</h2>
+        <div class="grid-2">
+            <button onclick="exportData()" class="btn-sec">📥 Backup Herunterladen (JSON)</button>
+            <button onclick="document.getElementById('importFile').click()" class="btn-sec">📤 Backup Wiederherstellen</button>
+            <input type="file" id="importFile" style="display:none" onchange="importData(event)">
+        </div>
+    </div>
+
+    <!-- 1. Profil & Garmin HF-Zonen -->
+    <div class="card">
+        <h2>✏️ Profil & Garmin HF-Zonen</h2>
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Aktuelle 10k-Zeit (mm:ss)</label>
+                <input type="text" id="in10k" value="44:30">
+            </div>
+            <div class="form-group">
+                <label>Wochenläufe</label>
+                <input type="number" id="inRunsPerWeek" value="3" min="2" max="6">
+            </div>
+        </div>
+
+        <label style="margin-top: 5px;"><strong>Garmin HF-Zonen (Maximalwerte BPM):</strong></label>
+        <div class="grid-5" style="margin-top: 5px;">
+            <div class="zone-box"><div class="zone-title">Z1</div><input type="number" id="z1" value="130"></div>
+            <div class="zone-box"><div class="zone-title">Z2</div><input type="number" id="z2" value="148"></div>
+            <div class="zone-box"><div class="zone-title">Z3</div><input type="number" id="z3" value="162"></div>
+            <div class="zone-box"><div class="zone-title">Z4</div><input type="number" id="z4" value="175"></div>
+            <div class="zone-box"><div class="zone-title">Z5</div><input type="number" id="z5" value="188"></div>
+        </div>
+        <button onclick="saveProfile()" style="margin-top: 10px;">Profil & Zonen Speichern</button>
+    </div>
+
+    <!-- 2. Status Dashboard -->
+    <div class="card">
+        <h2>📊 Aktueller Status</h2>
+        <div class="stat-grid">
+            <div class="stat-box"><div class="stat-val" id="disp10k">44:30</div><div class="stat-lbl">10k-Zeit</div></div>
+            <div class="stat-box"><div class="stat-val" id="dispScore">82%</div><div class="stat-lbl">Erholung</div></div>
+            <div class="stat-box"><div class="stat-val" id="dispAmpel">🟢 Grün</div><div class="stat-lbl">Letzte Ampel</div></div>
+        </div>
+    </div>
+
+    <!-- 3. Wochenübersicht -->
+    <div class="card">
+        <h2>📅 Wochenübersicht</h2>
+        <div class="week-grid" id="weekGrid"></div>
+    </div>
+
+    <!-- 4. Nächste geplante Einheit -->
+    <div class="card">
+        <h2>🏃 Nächste geplante Einheit</h2>
+        <span class="badge" id="badge">EDGE Spezial</span>
+        <h3 id="pTitle" style="margin: 5px 0; font-size: 1.05rem;">4x 1000m Tempoläufe</h3>
+        
+        <div class="workout-phase">
+            <div class="phase-title">🔥 2. Warm-Up</div>
+            <div id="pWarm">2,0 km Einlaufen (05:25 min/km) + 4 Strides / Laufschule</div>
+        </div>
+
+        <div class="workout-phase" style="border-left-color: #f59e0b;">
+            <div class="phase-title" style="color: #f59e0b;">⚡ 3. Hauptteil</div>
+            <div id="pMain">4x 1000m @ 03:55 min/km | Target HR: Zone 4-5 (170-182 BPM)</div>
+        </div>
+
+        <div class="workout-phase" style="border-left-color: #a855f7;">
+            <div class="phase-title" style="color: #a855f7;">⏸️ Pausen</div>
+            <div id="pPause">400m Trabpause (~2:30 Min) nach jedem Intervall</div>
+        </div>
+
+        <div class="workout-phase" style="border-left-color: #22c55e;">
+            <div class="phase-title" style="color: #22c55e;">🧊 4. Cool-Down</div>
+            <div id="pCool">1,5 km ruhiges Auslaufen (> 05:40 min/km)</div>
+        </div>
+    </div>
+
+    <!-- 5. ANALYSE MASKE -->
+    <div class="card">
+        <h2>🔥 Analyse – EDGE Spezial (Einheit eintragen)</h2>
+        
+        <div class="section-header">🌍 1. Rahmendaten</div>
+        <div class="grid-2">
+            <div class="form-group"><label>Datum</label><input type="date" id="logDate"></div>
+            <div class="form-group"><label>Ort / Untergrund</label><input type="text" id="logLocation" placeholder="z.B. Park / Asphalt"></div>
+        </div>
+        <div class="grid-3">
+            <div class="form-group"><label>Energielevel (1-10)</label><input type="number" id="logEnergy" value="8" min="1" max="10"></div>
+            <div class="form-group"><label>Muskelgefühl vor Lauf</label><input type="text" id="logMuscle" placeholder="z.B. Locker / Beine leicht"></div>
+            <div class="form-group"><label>Schuh</label><input type="text" id="logShoes" placeholder="z.B. Vaporfly / Novablast"></div>
+        </div>
+        <div class="grid-2">
+            <div class="form-group"><label>Allgemeines Befinden</label><input type="text" id="logMood" placeholder="z.B. Guten Schlaf gehabt"></div>
+            <div class="form-group"><label>Wetter & Temp.</label><input type="text" id="logWeather" placeholder="z.B. 14°C, sonnig, leicht windig"></div>
+        </div>
+        <div class="grid-2">
+            <div class="form-group"><label>Höhenmeter Anstieg (⬆️ m)</label><input type="number" id="logElevUp" value="20"></div>
+            <div class="form-group"><label>Höhenmeter Abstieg (⬇️ m)</label><input type="number" id="logElevDown" value="20"></div>
+        </div>
+
+        <div class="section-header">📊 Gesamtdaten</div>
+        <div class="grid-3">
+            <div class="form-group"><label>Gesamtdistanz (km)</label><input type="number" id="logTotalDist" value="8.2" step="0.1"></div>
+            <div class="form-group"><label>Gesamtdauer (hh:mm:ss)</label><input type="text" id="logTotalTime" value="00:39:15"></div>
+            <div class="form-group"><label>Gesamt-Pace (mm:ss)</label><input type="text" id="logTotalPace" value="04:47"></div>
+        </div>
+        <div class="grid-2">
+            <div class="form-group"><label>Ø HF (BPM)</label><input type="number" id="logAvgHR" value="158"></div>
+            <div class="form-group"><label>Max HF (BPM)</label><input type="number" id="logMaxHR" value="182"></div>
+        </div>
+        <div class="form-group"><label>Besonderheiten Gesamtlauf</label><input type="text" id="logTotalNotes" placeholder="z.B. Seitenstechen bei km 6"></div>
+
+        <div class="section-header">🚶 2. Warm-Up</div>
+        <div class="grid-3">
+            <div class="form-group"><label>Warmup Distanz (km)</label><input type="number" id="logWarmDist" value="2.0" step="0.1"></div>
+            <div class="form-group"><label>Warmup Pace</label><input type="text" id="logWarmPace" value="05:20"></div>
+            <div class="form-group"><label>Warmup Ø HF</label><input type="number" id="logWarmHR" value="138"></div>
+        </div>
+        <div class="form-group"><label>Strides & Besonderheiten</label><input type="text" id="logWarmNotes" value="4x Steigerungen gut durchgezogen"></div>
+
+        <div class="section-header">⚡ 3. Hauptteil</div>
+        <div class="form-group"><label>Ergebnisse Hauptteil (Paces, HF & Gefühle je Intervall)</label><textarea id="logMainText" rows="2" placeholder="1: 03:54 (172 BPM)&#10;2: 03:52 (176 BPM)"></textarea></div>
+
+        <div class="section-header">🧊 4. Cool-Down</div>
+        <div class="grid-3">
+            <div class="form-group"><label>Cooldown Distanz (km)</label><input type="number" id="logCoolDist" value="1.5" step="0.1"></div>
+            <div class="form-group"><label>Cooldown Pace</label><input type="text" id="logCoolPace" value="05:45"></div>
+            <div class="form-group"><label>Gefühl nach Einheit</label><input type="text" id="logCoolFeel" placeholder="z.B. Ziemlich platt, aber stolz"></div>
+        </div>
+
+        <div class="section-header">🎯 5. Tagesfazit</div>
+        <div class="grid-3">
+            <div class="form-group"><label>Zufriedenheit (/10)</label><input type="number" id="logSat" value="9" min="1" max="10"></div>
+            <div class="form-group">
+                <label>Tagesampel</label>
+                <select id="logAmpel">
+                    <option value="🟢 Grün" selected>🟢 Grün (Alles top)</option>
+                    <option value="🟡 Gelb">🟡 Gelb (Grenzbereich)</option>
+                    <option value="🔴 Rot">🔴 Rot (Überlastung)</option>
+                </select>
+            </div>
+            <div class="form-group"><label>Wichtigste Erkenntnis</label><input type="text" id="logInsight" placeholder="z.B. Saubere Pacing-Kontrolle"></div>
+        </div>
+        <div class="form-group"><label>Begründung der Ampel</label><input type="text" id="logAmpelReason" placeholder="Ziel-Pace bei allen Intervallen gehalten"></div>
+
+        <button onclick="evaluateEdgeRun()" style="margin-top: 10px; background: #22c55e; color: #0f172a;">🔥 6. Trainerfazit Generieren & Speichern</button>
+    </div>
+
+    <!-- 6. TRAINERFAZIT & FEEDBACK -->
+    <div class="card">
+        <h2>🏁 6. Trainerfazit & Feedback (Automatisch generiert)</h2>
+        <div class="chat-box" id="feedbackWin" style="height: 250px;">
+            <div class="msg msg-ai">Trage deine Daten oben ein und klicke auf den grünen Button. Hier erscheint dann deine Trainer-Analyse!</div>
+        </div>
+    </div>
+
+<script>
+    let appData = {
+        zones: { z1: 130, z2: 148, z3: 162, z4: 175, z5: 188 },
+        time10k: "44:30",
+        history: []
+    };
+
+    let weekPlan = [
+        { day: "Mo", status: "Ruhetag", type: "rest" },
+        { day: "Di", status: "EDGE Tempolauf", type: "run" },
+        { day: "Mi", status: "Ruhetag", type: "rest" },
+        { day: "Do", status: "Grundlage GA1", type: "run" },
+        { day: "Fr", status: "Ruhetag", type: "rest" },
+        { day: "Sa", status: "Schwellenlauf", type: "run" },
+        { day: "So", status: "Ruhetag", type: "rest" }
+    ];
+
+    function renderWeek() {
+        const grid = document.getElementById('weekGrid');
+        if (!grid) return;
+        grid.innerHTML = "";
+        weekPlan.forEach(d => {
+            grid.innerHTML += `
+                <div class="day-box ${d.type === 'run' ? 'active' : ''}">
+                    <div class="day-name">${d.day}</div>
+                    <div class="day-status ${d.type === 'run' ? 'run-day' : 'rest-day'}">${d.status}</div>
+                </div>
+            `;
+        });
+    }
+
+    function loadLocalStorage() {
+        const saved = localStorage.getItem('runningAppData');
+        if (saved) {
+            appData = JSON.parse(saved);
+            document.getElementById('in10k').value = appData.time10k || "44:30";
+            document.getElementById('disp10k').innerText = appData.time10k || "44:30";
+            if(appData.zones) {
+                document.getElementById('z1').value = appData.zones.z1;
+                document.getElementById('z2').value = appData.zones.z2;
+                document.getElementById('z3').value = appData.zones.z3;
+                document.getElementById('z4').value = appData.zones.z4;
+                document.getElementById('z5').value = appData.zones.z5;
+            }
+        }
+    }
+
+    function saveLocalStorage() {
+        localStorage.setItem('runningAppData', JSON.stringify(appData));
+    }
+
+    window.onload = function() {
+        loadLocalStorage();
+        renderWeek();
+        document.getElementById('logDate').valueAsDate = new Date();
+    };
+
+    function saveProfile() {
+        appData.time10k = document.getElementById('in10k').value;
+        appData.zones = {
+            z1: parseInt(document.getElementById('z1').value),
+            z2: parseInt(document.getElementById('z2').value),
+            z3: parseInt(document.getElementById('z3').value),
+            z4: parseInt(document.getElementById('z4').value),
+            z5: parseInt(document.getElementById('z5').value)
+        };
+        document.getElementById('disp10k').innerText = appData.time10k;
+        saveLocalStorage();
+        alert("✅ Daten dauerhaft gespeichert!");
+    }
+
+    function exportData() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", `laufplan_backup_${new Date().toISOString().slice(0,10)}.json`);
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+    }
+
+    function importData(event) {
+        const fileReader = new FileReader();
+        fileReader.onload = function(e) {
+            appData = JSON.parse(e.target.result);
+            saveLocalStorage();
+            loadLocalStorage();
+            alert("✅ Backup erfolgreich wiederhergestellt!");
+        };
+        fileReader.readAsText(event.target.files[0]);
+    }
+
+    function evaluateEdgeRun() {
+        let sat = document.getElementById('logSat').value;
+        let ampel = document.getElementById('logAmpel').value;
+        let mainText = document.getElementById('logMainText').value;
+        let avgHR = parseInt(document.getElementById('logAvgHR').value);
+        let maxHR = parseInt(document.getElementById('logMaxHR').value);
+        let insight = document.getElementById('logInsight').value;
+        let ampelReason = document.getElementById('logAmpelReason').value;
+
+        document.getElementById('dispAmpel').innerText = ampel;
+
+        let fbWin = document.getElementById('feedbackWin');
+
+        let analysisText = `
+            <strong>🏁 6. TRAINERFAZIT & FEEDBACK</strong><br><br>
+            <strong>🔘 Rein sportliche/leistungsorientierte Analyse:</strong><br>
+            Hauptteil mit Ø ${avgHR} BPM und Max ${maxHR} BPM absolviert. ${mainText ? "Pacing verläuft stabil." : ""}<br><br>
+            <strong>🔘 Lob:</strong><br>
+            Klasse Einheit! Zufriedenheit ${sat}/10. Reiz für Ziel 10,8 km @ 03:59 wurde exakt gesetzt.<br><br>
+            <strong>🔘 Verbesserungen:</strong><br>
+            ${maxHR > appData.zones.z5 ? "Am Ende etwas überzieht. Puls im letzten Intervall unter Kontrolle halten." : "Cool-Down konsequent ruhig halten."}<br><br>
+            <strong>🔘 Besonderheiten:</strong><br>
+            Erkenntnis: ${insight || "Keine"}. Ampel-Begründung: ${ampelReason || "Keine Beschwerden."}
+        `;
+
+        fbWin.innerHTML = `<div class="msg msg-ai">${analysisText}</div>`;
+        
+        // Speichern der Einheit in der Historie
+        appData.history.push({ date: document.getElementById('logDate').value, ampel: ampel, sat: sat });
+        saveLocalStorage();
+    }
+</script>
+</body>
+</html>

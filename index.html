@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lauf-Coach Pro - EDGE Spezial</title>
+    <title>Lauf-Coach Pro - EDGE Spezial (Gemini AI)</title>
     <style>
         body { font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #f8fafc; padding: 15px; margin: 0; }
         .card { background: #1e293b; border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #334155; }
@@ -37,10 +37,11 @@
         .workout-phase { background: #0f172a; border-left: 3px solid #38bdf8; padding: 8px 10px; margin-top: 6px; border-radius: 0 6px 6px 0; font-size: 0.82rem; }
         .phase-title { font-weight: bold; color: #38bdf8; font-size: 0.78rem; text-transform: uppercase; }
 
-        .chat-box { background: #0f172a; height: 180px; overflow-y: auto; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #334155; }
-        .msg { padding: 8px 10px; border-radius: 8px; margin-bottom: 8px; font-size: 0.85rem; line-height: 1.4; }
-        .msg-ai { background: #334155; }
+        .chat-box { background: #0f172a; height: 220px; overflow-y: auto; padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #334155; }
+        .msg { padding: 8px 10px; border-radius: 8px; margin-bottom: 8px; font-size: 0.85rem; line-height: 1.4; white-space: pre-wrap; }
+        .msg-ai { background: #334155; border-left: 3px solid #38bdf8; }
         .msg-user { background: #0284c7; text-align: right; }
+        .chat-input { display: flex; gap: 5px; }
         
         button { background: #38bdf8; border: none; padding: 10px 12px; font-weight: bold; border-radius: 6px; color: #0f172a; cursor: pointer; width: 100%; font-size: 0.9rem; }
         .btn-sec { background: #334155; color: #f8fafc; font-size: 0.8rem; padding: 8px; }
@@ -54,11 +55,17 @@
     <h1>🏃 Adaptiver Lauf-Coach Pro</h1>
     <p style="color: #94a3b8; margin-top: -10px; font-size: 0.85rem;">EDGE Spezial | Ziel: 10,8 km @ 03:59 min/km</p>
 
-    <!-- DATENSICHERUNG (EXPORT / IMPORT) -->
+    <!-- KI SETTINGS & BACKUP -->
     <div class="card">
-        <h2>💾 Datensicherung & Backup</h2>
+        <h2>🔑 KI-Einstellungen & Backup</h2>
+        <div class="form-group">
+            <label style="color: #f59e0b; font-weight: bold;">Google Gemini API Key:</label>
+            <input type="password" id="apiKeyInput" placeholder="Hier deinen Gemini API-Key einfügen...">
+        </div>
+        <button onclick="saveApiKey()" style="margin-bottom: 10px; background: #f59e0b;">Key Speichern</button>
+        
         <div class="grid-2">
-            <button onclick="exportData()" class="btn-sec">📥 Backup Herunterladen (JSON)</button>
+            <button onclick="exportData()" class="btn-sec">📥 Backup Herunterladen</button>
             <button onclick="document.getElementById('importFile').click()" class="btn-sec">📤 Backup Wiederherstellen</button>
             <input type="file" id="importFile" style="display:none" onchange="importData(event)">
         </div>
@@ -112,12 +119,12 @@
         <h3 id="pTitle" style="margin: 5px 0; font-size: 1.05rem;">4x 1000m Tempoläufe</h3>
         
         <div class="workout-phase">
-            <div class="phase-title">🔥 2. Warm-Up</div>
+            <div class="phase-title">🔥 Warm-Up</div>
             <div id="pWarm">2,0 km Einlaufen (05:25 min/km) + 4 Strides / Laufschule</div>
         </div>
 
         <div class="workout-phase" style="border-left-color: #f59e0b;">
-            <div class="phase-title" style="color: #f59e0b;">⚡ 3. Hauptteil</div>
+            <div class="phase-title" style="color: #f59e0b;">⚡ Hauptteil</div>
             <div id="pMain">4x 1000m @ 03:55 min/km | Target HR: Zone 4-5 (170-182 BPM)</div>
         </div>
 
@@ -127,7 +134,7 @@
         </div>
 
         <div class="workout-phase" style="border-left-color: #22c55e;">
-            <div class="phase-title" style="color: #22c55e;">🧊 4. Cool-Down</div>
+            <div class="phase-title" style="color: #22c55e;">🧊 Cool-Down</div>
             <div id="pCool">1,5 km ruhiges Auslaufen (> 05:40 min/km)</div>
         </div>
     </div>
@@ -176,7 +183,7 @@
         <div class="form-group"><label>Strides & Besonderheiten</label><input type="text" id="logWarmNotes" value="4x Steigerungen gut durchgezogen"></div>
 
         <div class="section-header">⚡ 3. Hauptteil</div>
-        <div class="form-group"><label>Ergebnisse Hauptteil (Paces, HF & Gefühle je Intervall)</label><textarea id="logMainText" rows="2" placeholder="1: 03:54 (172 BPM)&#10;2: 03:52 (176 BPM)"></textarea></div>
+        <div class="form-group"><label>Ergebnisse Hauptteil (Paces, HF & Gefühle je Intervall)</label><textarea id="logMainText" rows="3" placeholder="1: 03:54 (172 BPM)&#10;2: 03:52 (176 BPM)&#10;3: 03:55 (179 BPM)&#10;4: 03:50 (182 BPM)"></textarea></div>
 
         <div class="section-header">🧊 4. Cool-Down</div>
         <div class="grid-3">
@@ -200,19 +207,32 @@
         </div>
         <div class="form-group"><label>Begründung der Ampel</label><input type="text" id="logAmpelReason" placeholder="Ziel-Pace bei allen Intervallen gehalten"></div>
 
-        <button onclick="evaluateEdgeRun()" style="margin-top: 10px; background: #22c55e; color: #0f172a;">🔥 6. Trainerfazit Generieren & Speichern</button>
+        <button onclick="evaluateEdgeRunWithAI()" style="margin-top: 10px; background: #22c55e; color: #0f172a;">🔥 6. Trainerfazit mit KI Generieren</button>
     </div>
 
-    <!-- 6. TRAINERFAZIT & FEEDBACK -->
+    <!-- 6. TRAINERFAZIT & FEEDBACK (KI GENERIERT) -->
     <div class="card">
-        <h2>🏁 6. Trainerfazit & Feedback (Automatisch generiert)</h2>
-        <div class="chat-box" id="feedbackWin" style="height: 250px;">
-            <div class="msg msg-ai">Trage deine Daten oben ein und klicke auf den grünen Button. Hier erscheint dann deine Trainer-Analyse!</div>
+        <h2>🏁 6. Trainerfazit & Feedback (Gemini KI)</h2>
+        <div class="chat-box" id="feedbackWin">
+            <div class="msg msg-ai">Füge oben deinen Gemini API-Key ein. Wenn du dann eine Einheit einschickst, analysiert die KI dein Training vollautomatisch!</div>
+        </div>
+    </div>
+
+    <!-- 7. KI COACH CHAT -->
+    <div class="card">
+        <h2>💬 Chat mit deinem KI-Coach</h2>
+        <div class="chat-box" id="cWin" style="height: 150px;">
+            <div class="msg msg-ai">Hi! Du kannst mir jederzeit Fragen zu deiner Regeneration, Schmerzen oder Trainingsanpassungen stellen.</div>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="cIn" placeholder="Frage an den KI-Coach stellen...">
+            <button onclick="sendChatToAI()" style="width: auto;">Senden</button>
         </div>
     </div>
 
 <script>
     let appData = {
+        apiKey: "",
         zones: { z1: 130, z2: 148, z3: 162, z4: 175, z5: 188 },
         time10k: "44:30",
         history: []
@@ -248,6 +268,7 @@
             appData = JSON.parse(saved);
             document.getElementById('in10k').value = appData.time10k || "44:30";
             document.getElementById('disp10k').innerText = appData.time10k || "44:30";
+            if(appData.apiKey) document.getElementById('apiKeyInput').value = appData.apiKey;
             if(appData.zones) {
                 document.getElementById('z1').value = appData.zones.z1;
                 document.getElementById('z2').value = appData.zones.z2;
@@ -260,6 +281,12 @@
 
     function saveLocalStorage() {
         localStorage.setItem('runningAppData', JSON.stringify(appData));
+    }
+
+    function saveApiKey() {
+        appData.apiKey = document.getElementById('apiKeyInput').value.trim();
+        saveLocalStorage();
+        alert("✅ API-Key sicher gespeichert!");
     }
 
     window.onload = function() {
@@ -279,7 +306,113 @@
         };
         document.getElementById('disp10k').innerText = appData.time10k;
         saveLocalStorage();
-        alert("✅ Daten dauerhaft gespeichert!");
+        alert("✅ Profil & Garmin HF-Zonen gespeichert!");
+    }
+
+    // Kommunikation mit der Google Gemini API
+    async function callGeminiAPI(promptText) {
+        if (!appData.apiKey) {
+            alert("⚠️ Bitte trage zuerst oben deinen Google Gemini API-Key ein!");
+            return null;
+        }
+
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${appData.apiKey}`;
+        
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: promptText }] }]
+                })
+            });
+
+            const data = await response.json();
+            if (data.candidates && data.candidates[0].content.parts[0].text) {
+                return data.candidates[0].content.parts[0].text;
+            } else {
+                throw new Error("Ungültige Antwort von der KI-API");
+            }
+        } catch (error) {
+            alert("Fehler bei der KI-Anfrage: " + error.message);
+            return null;
+        }
+    }
+
+    async function evaluateEdgeRunWithAI() {
+        let fbWin = document.getElementById('feedbackWin');
+        fbWin.innerHTML = `<div class="msg msg-ai">🔄 KI analysiert dein Training... Bitte einen Moment Geduld!</div>`;
+
+        let logData = {
+            ziel: "10,8 km @ 03:59 min/km",
+            aktuelle10k: appData.time10k,
+            hfZonen: appData.zones,
+            datum: document.getElementById('logDate').value,
+            ort: document.getElementById('logLocation').value,
+            energie: document.getElementById('logEnergy').value + "/10",
+            muskeln: document.getElementById('logMuscle').value,
+            befinden: document.getElementById('logMood').value,
+            schuhe: document.getElementById('logShoes').value,
+            wetter: document.getElementById('logWeather').value,
+            hoehenmeter: `Anstieg: ${document.getElementById('logElevUp').value}m, Abstieg: ${document.getElementById('logElevDown').value}m`,
+            gesamtdaten: `${document.getElementById('logTotalDist').value} km in ${document.getElementById('logTotalTime').value} (Pace: ${document.getElementById('logTotalPace').value}, Ø HF: ${document.getElementById('logAvgHR').value}, Max HF: ${document.getElementById('logMaxHR').value})`,
+            notes: document.getElementById('logTotalNotes').value,
+            warmup: `${document.getElementById('logWarmDist').value} km @ ${document.getElementById('logWarmPace').value}, Ø HF: ${document.getElementById('logWarmHR').value}. Notes: ${document.getElementById('logWarmNotes').value}`,
+            hauptteil: document.getElementById('logMainText').value,
+            cooldown: `${document.getElementById('logCoolDist').value} km @ ${document.getElementById('logCoolPace').value}. Gefühl: ${document.getElementById('logCoolFeel').value}`,
+            tagesfazit: `Zufriedenheit: ${document.getElementById('logSat').value}/10, Ampel: ${document.getElementById('logAmpel').value}, Erkenntnis: ${document.getElementById('logInsight').value}, Begründung: ${document.getElementById('logAmpelReason').value}`
+        };
+
+        let prompt = `
+            Du bist der persönliche, hochprofessionelle Lauf-Coach des Läufers.
+            Ziel des Läufers: 10,8 km Wettkampf in der Ziel-Pace von 03:59 min/km.
+            
+            Anbei sind die vollständigen Trainingsdaten der absolvierten Einheit (EDGE Spezial Protocol):
+            ${JSON.stringify(logData, null, 2)}
+
+            Aufgabe: Erstelle exakt die folgende Sektion 6 (Trainerfazit & Feedback). Nutze exakt diese Struktur mit Emoji-Bulletpoints und antworte direkt, präzise und hochkompetent:
+
+            🏁 6. Trainerfazit & Feedback
+
+            🔘 Rein sportliche/leistungsorientierte Analyse der Einheit
+            (Analysiere Pacing, HF-Bereiche basierend auf den Zonen, Höhenmeter und Zielvorgabe)
+
+            🔘 Lob
+            (Konkretes Lob für die erbrachte Disziplin / Leistung)
+
+            🔘 Verbesserungen
+            (Taktische oder physiologische Optimierungspotenziale)
+
+            🔘 Besonderheiten
+            (Eingehen auf Schuhe, Wetter, Ampel, Erkenntnis)
+        `;
+
+        let resultText = await callGeminiAPI(prompt);
+        if (resultText) {
+            fbWin.innerHTML = `<div class="msg msg-ai">${resultText}</div>`;
+            document.getElementById('dispAmpel').innerText = document.getElementById('logAmpel').value;
+            appData.history.push({ date: logData.datum, ampel: logData.tagesfazit });
+            saveLocalStorage();
+        }
+    }
+
+    async function sendChatToAI() {
+        let inp = document.getElementById('cIn');
+        let txt = inp.value.trim();
+        if(!txt) return;
+
+        let win = document.getElementById('cWin');
+        win.innerHTML += `<div class="msg msg-user">${txt}</div>`;
+        inp.value = '';
+        win.scrollTop = win.scrollHeight;
+
+        let prompt = `Du bist der persönliche Lauf-Coach für das Ziel 10,8km in 03:59 min/km. Der Läufer stellt dir folgende Frage: "${txt}". Antworte kurz, professionell und motivierend.`;
+        
+        let reply = await callGeminiAPI(prompt);
+        if (reply) {
+            win.innerHTML += `<div class="msg msg-ai">${reply}</div>`;
+            win.scrollTop = win.scrollHeight;
+        }
     }
 
     function exportData() {
@@ -301,38 +434,6 @@
             alert("✅ Backup erfolgreich wiederhergestellt!");
         };
         fileReader.readAsText(event.target.files[0]);
-    }
-
-    function evaluateEdgeRun() {
-        let sat = document.getElementById('logSat').value;
-        let ampel = document.getElementById('logAmpel').value;
-        let mainText = document.getElementById('logMainText').value;
-        let avgHR = parseInt(document.getElementById('logAvgHR').value);
-        let maxHR = parseInt(document.getElementById('logMaxHR').value);
-        let insight = document.getElementById('logInsight').value;
-        let ampelReason = document.getElementById('logAmpelReason').value;
-
-        document.getElementById('dispAmpel').innerText = ampel;
-
-        let fbWin = document.getElementById('feedbackWin');
-
-        let analysisText = `
-            <strong>🏁 6. TRAINERFAZIT & FEEDBACK</strong><br><br>
-            <strong>🔘 Rein sportliche/leistungsorientierte Analyse:</strong><br>
-            Hauptteil mit Ø ${avgHR} BPM und Max ${maxHR} BPM absolviert. ${mainText ? "Pacing verläuft stabil." : ""}<br><br>
-            <strong>🔘 Lob:</strong><br>
-            Klasse Einheit! Zufriedenheit ${sat}/10. Reiz für Ziel 10,8 km @ 03:59 wurde exakt gesetzt.<br><br>
-            <strong>🔘 Verbesserungen:</strong><br>
-            ${maxHR > appData.zones.z5 ? "Am Ende etwas überzieht. Puls im letzten Intervall unter Kontrolle halten." : "Cool-Down konsequent ruhig halten."}<br><br>
-            <strong>🔘 Besonderheiten:</strong><br>
-            Erkenntnis: ${insight || "Keine"}. Ampel-Begründung: ${ampelReason || "Keine Beschwerden."}
-        `;
-
-        fbWin.innerHTML = `<div class="msg msg-ai">${analysisText}</div>`;
-        
-        // Speichern der Einheit in der Historie
-        appData.history.push({ date: document.getElementById('logDate').value, ampel: ampel, sat: sat });
-        saveLocalStorage();
     }
 </script>
 </body>
